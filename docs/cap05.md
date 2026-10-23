@@ -144,9 +144,10 @@ Voltando ao problema do início do capítulo: agora que temos um tipo `Aluno`, o
 ```c
 Aluno turma[30];
 
-turma[0].nome ...      // strcpy(turma[0].nome, "Maria");
+strcpy(turma[0].nome, "Maria");
 turma[0].nota1 = 8.5;
 
+// (supondo que os 30 alunos já foram preenchidos)
 for (int i = 0; i < 30; i++) {
     printf("%s\n", turma[i].nome);
 }
@@ -183,6 +184,13 @@ Note, mais uma vez, a diferença de filosofia: em C e em VisuAlg você reserva d
 ⚠️ **Ponteiros à frente.** Lembra que, na Seção 4.2, vimos que passar um vetor para uma função em C já deixa a função enxergar (e poder alterar) o vetor original, meio que "de graça"? Com structs, **acontece o oposto**: passar um struct para uma função, do jeito simples, **copia o struct inteiro**. A função recebe uma cópia independente; qualquer alteração feita lá dentro não volta para a variável original.
 
 ```c
+#include <stdio.h>
+
+struct aluno {            // o mesmo da Seção 5.2
+    char nome[20];
+    float nota1, nota2, nota3;
+};
+
 void aumenta_nota(struct aluno a) {
     a.nota1 += 1.0;   // isso altera só a copia local, dentro da função
 }
@@ -320,7 +328,7 @@ v.i = 65;
 printf("%d\n", v.i);   // 65
 
 v.f = 3.14;
-printf("%d\n", v.i);   // lixo -- v.i nao e mais valido, o espaco foi reescrito como float
+printf("%d\n", v.i);   // 1078523331 -- os bytes de 3.14 (float) lidos como se fossem um int
 ```
 
 | | `struct` | `union` |
@@ -332,6 +340,9 @@ printf("%d\n", v.i);   // lixo -- v.i nao e mais valido, o espaco foi reescrito 
 Na prática, você vai usar `struct` com muito mais frequência do que `union` — a grande maioria dos programas do dia a dia agrupa dados que **coexistem** (um aluno tem nome *e* notas ao mesmo tempo), que é exatamente o caso de uso de `struct`. `union` aparece em situações mais específicas, como economizar memória quando se sabe que só um entre vários campos vai estar em uso por vez, ou representar os mesmos bytes de mais de uma forma (comum em código de sistemas e protocolos de rede). Não é um tipo que voltaremos a usar no restante deste livro, mas vale reconhecer a sintaxe e a diferença de memória caso você encontre uma `union` em código de terceiros.
 
 ### 5.8. Lista de exercícios
+
+!!! note "Exercícios que dependem do Capítulo 6"
+    Os exercícios 2, 3, 4, 7 e 12 usam ponteiros (`*`, `->`, `malloc`, `sizeof` de ponteiro). Resolva-os depois de estudar o Capítulo 6.
 
 #### Questões teóricas
 
@@ -345,7 +356,7 @@ Na prática, você vai usar `struct` com muito mais frequência do que `union` �
 5. Defina uma `struct Produto` para armazenar `codigo` (`int`), `descricao` (`char[]`, até 50 caracteres) e `preco` (`float`). Escreva um `main` que declare uma variável do tipo `Produto`, inicialize seus campos e imprima os dados de forma organizada.
 6. Escreva uma função `aplica_desconto` que receba um `Produto` (por valor) e um percentual de desconto (`float`), calcule o novo preço e **retorne uma nova estrutura** `Produto` com o preço atualizado — sem modificar a estrutura original.
 7. Escreva uma função `void atualiza_preco(Produto *p, float percentual)` que receba um **ponteiro** para `Produto` e um percentual de aumento, e modifique o preço diretamente na estrutura original.
-8. Usando o `struct ponto { float x, y; };` da Seção 5.2, escreva uma função `float distancia(struct ponto a, struct ponto b)` que calcula a distância entre dois pontos (`sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2))`, usando `<math.h>`). Repare que aqui passar os pontos por valor (cópia) é perfeitamente adequado — a função só precisa ler os campos, não alterá-los.
+8. Usando o `struct ponto { float x, y; };` do Exercício de mapeamento 5.1, escreva uma função `float distancia(struct ponto a, struct ponto b)` que calcula a distância entre dois pontos (`sqrt(pow(b.x - a.x, 2) + pow(b.y - a.y, 2))`, usando `<math.h>`). Repare que aqui passar os pontos por valor (cópia) é perfeitamente adequado — a função só precisa ler os campos, não alterá-los.
 9. Defina um `struct retangulo` com dois campos do tipo `struct ponto` (por exemplo, `canto_inferior_esquerdo` e `canto_superior_direito`). Escreva funções `float area(struct retangulo r)` e `float perimetro(struct retangulo r)`.
 10. Defina um `struct data { int dia, mes, ano; };` e escreva uma função `int mais_recente(struct data a, struct data b)` que devolve `1` se `a` é mais recente que `b`, ou `0` caso contrário. Lembre que C não tem um jeito de comparar dois structs inteiros de uma vez com `==` (assim como não tem para strings) — você precisa comparar campo por campo (primeiro o ano, depois o mês, depois o dia).
 11. Defina `struct funcionario { char nome[30]; float salario; };` e, usando o que vimos na Seção 5.4, declare um vetor de 10 funcionários. Escreva um programa que leia os dados dos 10 funcionários e imprima: o nome de quem tem o maior salário, e o total da folha de pagamento (soma de todos os salários).

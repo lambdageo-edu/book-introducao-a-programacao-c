@@ -1,23 +1,25 @@
 ## 3. Bibliotecas
 
-Tendo discutido as funções internas, agora nos voltamos para discutir questões relacionadas a funções e separar um programa em vários arquivos.
+Tendo visto os comandos básicos da linguagem, agora nos voltamos para questões relacionadas a funções e a separar um programa em vários arquivos.
 
 !!! note "Um capítulo sem muito equivalente direto"
     Diferente dos capítulos anteriores, os três assuntos aqui (protótipos, arquivos de cabeçalho e diretivas de pré-processador) não têm um mapeamento direto em VisuAlg, porque o VisuAlg não tem essas ideias: todo algoritmo VisuAlg vive em um único arquivo, sem um passo de pré-processamento separado. Em Python o mais próximo é o sistema de módulos (`import`), mas mesmo assim os mecanismos são bem diferentes por baixo dos panos. Por isso, aqui vamos focar em **explicar o "porquê"** de cada mecanismo existir em C — que é justamente o tipo de coisa que não dá pra simplesmente "traduzir" de uma linguagem que você já conhece, porque a necessidade em si é nova.
 
 ### 3.1. Protótipos de função
 
-Em C, uma função deve ser declarada acima do local onde você a usa. No programa C de [Figura 2], definimos a função `gcd ()` primeiro, depois a função `main ()`. Isto é significativo: Se nós trocamos as funções `gcd ()` e `main ()`, o compilador iria reclamar em `main() `que a função `gcd ()` não foi declarada. Isso porque C assume que um compilador lê um programa de cima para baixo: No momento em que chega ao `main ()`, ele não foi informado sobre uma função `gcd ()`, e por isso ele acredita que a função não exista.
+Em C, uma função deve ser declarada acima do local onde você a usa. No programa C da [Seção 1.5](cap01.md#15-funcoes), definimos a função `gcd ()` primeiro, depois a função `main ()`. Isto é significativo: Se nós trocamos as funções `gcd ()` e `main ()`, o compilador iria reclamar em `main() `que a função `gcd ()` não foi declarada. Isso porque C assume que um compilador lê um programa de cima para baixo: No momento em que chega ao `main ()`, ele não foi informado sobre uma função `gcd ()`, e por isso ele acredita que a função não exista.
 
-Nem Python nem VisuAlg têm essa exigência: em ambos, o comum é definir todas as funções antes de usá-las de qualquer forma (é uma boa prática), mas nenhum dos dois erros se você, por exemplo, definir duas funções que chamam uma à outra (recursão mútua) — Python resolve isso em tempo de execução, quando a chamada de fato acontece, não em tempo de leitura do arquivo.
+Nem Python nem VisuAlg têm essa exigência: em ambos, o comum é definir todas as funções antes de usá-las de qualquer forma (é uma boa prática), mas nenhum dos dois dá erro se você, por exemplo, definir duas funções que chamam uma à outra (recursão mútua) — Python resolve isso em tempo de execução, quando a chamada de fato acontece, não em tempo de leitura do arquivo.
 
 Isso gera um problema, especialmente em programas maiores que abrangem vários arquivos, em que as funções de um arquivo precisarão chamar funções em outro. Para contornar isso, C fornece a noção de um **protótipo de função**, onde escrevemos o cabeçalho da função mas omitimos a definição do corpo.
 
-Por exemplo, digamos que queremos quebrar nosso programa C em dois arquivos: O primeiro arquivo, math.c, conterá a função `gcd ()` e o segundo arquivo, main.c, conterá o `main () `função. O problema com isso é que, na compilação main.c, o compilador não saberá sobre a função `gcd ()` que está tentando chamar.
+Por exemplo, digamos que queremos quebrar nosso programa C em dois arquivos: O primeiro arquivo, gcd.c, conterá a função `gcd ()` e o segundo arquivo, main.c, conterá a função `main ()`. O problema com isso é que, na compilação main.c, o compilador não saberá sobre a função `gcd ()` que está tentando chamar.
 
 Uma solução é incluir um protótipo de função em main.c.
 
 ```c
+#include <stdio.h>
+
 int gcd(int a, int b);
 
 int main() {
@@ -31,9 +33,9 @@ A linha `int gcd ...` é o protótipo da função. Você pode ver que começa da
 
 ### 3.2. Arquivos de cabeçalho (Header files)
 
-Programas maiores que abrangem vários arquivos freqüentemente contêm muitas funções que são usadas muitas vezes em muitos arquivos diferentes. Seria doloroso repetir cada protótipo de função em todos os arquivos que usam a função. Então, criamos um arquivo - chamado de **arquivo de cabeçalho** - que contém cada protótipo escrito apenas uma vez (e possivelmente algumas informações compartilhadas adicionais), e então podemos nos referir a esse arquivo de cabeçalho em cada arquivo de origem que deseja os protótipos. O arquivo de protótipos é chamado de arquivo de cabeçalho, pois contém as "heads" ou "cabeças" de várias funções. Convencionalmente, os arquivos de cabeçalho usam o prefixo `.h`, em vez do prefixo `.c` usado para os arquivos fonte C.
+Programas maiores que abrangem vários arquivos freqüentemente contêm muitas funções que são usadas muitas vezes em muitos arquivos diferentes. Seria doloroso repetir cada protótipo de função em todos os arquivos que usam a função. Então, criamos um arquivo - chamado de **arquivo de cabeçalho** - que contém cada protótipo escrito apenas uma vez (e possivelmente algumas informações compartilhadas adicionais), e então podemos nos referir a esse arquivo de cabeçalho em cada arquivo de origem que deseja os protótipos. O arquivo de protótipos é chamado de arquivo de cabeçalho, pois contém as "heads" ou "cabeças" de várias funções. Convencionalmente, os arquivos de cabeçalho usam a extensão `.h`, em vez da extensão `.c` usada para os arquivos fonte C.
 
-Por exemplo, podemos colocar o protótipo da nossa função `gcd ()` em um arquivo de cabeçalho chamado math.h.
+Por exemplo, podemos colocar o protótipo da nossa função `gcd ()` em um arquivo de cabeçalho chamado gcd.h. (Evitamos o nome `math.h` porque ele já existe: é o cabeçalho padrão `<math.h>`, de funções como `sqrt` e `pow`.)
 
 ```c
 int gcd(int a, int b);
@@ -43,7 +45,7 @@ Podemos usar um tipo especial de linha começando com `#include` para incorporar
 
 ```c
 #include <stdio.h>
-#include "math.h"
+#include "gcd.h"
 
 int main() {
     printf("GCD: %d\n",
@@ -54,9 +56,9 @@ int main() {
 
 Este exemplo em particular não é muito convincente, mas imagine uma biblioteca que consiste em dezenas de funções, que são usadas em dezenas de arquivos: De repente, a economia de tempo de ter apenas um único protótipo para cada função em um arquivo de cabeçalho começa a fazer sentido.
 
-A linha `#include` é um exemplo de uma diretiva para o pré-processador do C, através da qual o compilador C envia cada programa antes de compilá-lo. Um programa pode conter comandos (**diretivas**) informando ao pré-processador para manipular o texto do programa que o compilador realmente processa. A diretiva `#include` diz ao pré-processador para substituir a linha`#include` pelo conteúdo do arquivo especificado.
+A linha `#include` é um exemplo de uma diretiva para o pré-processador do C, através da qual o compilador C envia cada programa antes de compilá-lo. Um programa pode conter comandos (**diretivas**) informando ao pré-processador para manipular o texto do programa que o compilador realmente processa. A diretiva `#include` diz ao pré-processador para substituir a linha `#include` pelo conteúdo do arquivo especificado.
 
-Você notará que colocamos `stdio.h` entre colchetes, enquanto `math.h` está entre aspas duplas. Os colchetes angulares são para arquivos de cabeçalho padrão - arquivos mais ou menos incorporados ao sistema C. As aspas são para arquivos de cabeçalho personalizados que podem ser encontrados no mesmo diretório dos arquivos fonte.
+Você notará que colocamos `stdio.h` entre os sinais `<` e `>`, enquanto `gcd.h` está entre aspas duplas. Os sinais `< >` são para arquivos de cabeçalho padrão - arquivos mais ou menos incorporados ao sistema C. As aspas são para arquivos de cabeçalho personalizados que podem ser encontrados no mesmo diretório dos arquivos fonte.
 
 Se você já usou `import` em Python, a *motivação* de `#include` vai soar familiar (reaproveitar código escrito em outro arquivo) — mas o *mecanismo* é bem diferente, e vale a pena não confundir os dois:
 
@@ -90,12 +92,12 @@ Essa substituição acontece nos bastidores, para que o programador não veja a 
 
 VisuAlg tem uma ideia de constante nomeada (`const PI = 3.14159`) e Python também tem a convenção de variáveis em maiúsculas para indicar "isso é uma constante" (`PI = 3.14159`) — mas em nenhum dos dois casos existe uma etapa de pré-processamento textual por trás: é só uma variável comum, guardada na memória como qualquer outra, que por convenção (ou, no caso do VisuAlg, por declaração explícita com `const`) não deveria ser reatribuída. O `#define` de C é mais poderoso (e mais perigoso) que isso, porque ele nem chega a existir como variável — é apenas texto substituído antes da compilação, como mostra o próximo exemplo.
 
-A diretiva `# define` não está restrita a definir constantes como essa, no entanto. Por usar apenas substituição textual, a diretiva pode ser usada (e abusada) de outras maneiras. Por exemplo, pode-se incluir o seguinte.
+A diretiva `#define` não está restrita a definir constantes como essa, no entanto. Por usar apenas substituição textual, a diretiva pode ser usada (e abusada) de outras maneiras. Por exemplo, pode-se incluir o seguinte.
 
 ```c
 #define forever while(1)
 ```
-Posteriormente, você poderia usar `forever` como se fosse uma construção de loop, e o pré-processador a substituiria por" `while(1)` ".
+Posteriormente, você poderia usar `forever` como se fosse uma construção de loop, e o pré-processador a substituiria por `while(1)`.
 
 ```c
 forever {
@@ -107,9 +109,9 @@ Os programadores especialistas em C consideram esse estilo muito ruim, já que e
 !!! question "Exercício de mapeamento 3.1"
     Este exercício é um pouco diferente dos anteriores, porque não existe uma linha de VisuAlg ou Python para "traduzir" — o objetivo é justamente notar a ausência.
 
-    Imagine que você tem, em Python, dois arquivos: `matematica.py` (com uma função `mdc(a, b)`) e `main.py`, que faz `from matematica import mdc` e usa a função. Sem escrever código C ainda, responda: por que, em C, para fazer a mesma separação em dois arquivos (`math.c` e `main.c`), você **precisa** de um arquivo `math.h` com o protótipo de `mdc`, e não basta simplesmente compilar os dois arquivos `.c` juntos? (Dica: pense em quando o compilador de C lê `main.c` — ele já leu `math.c` nesse momento?)
+    Imagine que você tem, em Python, dois arquivos: `matematica.py` (com uma função `mdc(a, b)`) e `main.py`, que faz `from matematica import mdc` e usa a função. Sem escrever código C ainda, responda: por que, em C, para fazer a mesma separação em dois arquivos (`mdc.c` e `main.c`), você **precisa** de um arquivo `mdc.h` com o protótipo de `mdc`, e não basta simplesmente compilar os dois arquivos `.c` juntos? (Dica: pense em quando o compilador de C lê `main.c` — ele já leu `mdc.c` nesse momento?)
 
-Estas são as noções básicas de escrever programas em C, dando-lhe o suficiente para poder escrever programas razoavelmente úteis. Mas, para ser um programador proficiente em C, você precisaria saber sobre ponteiros - um tópico que adiaremos em outro momento.
+Estas são as noções básicas de escrever programas em C, dando-lhe o suficiente para poder escrever programas razoavelmente úteis. Mas, para ser um programador proficiente em C, você precisa saber sobre ponteiros — assunto do [Capítulo 6](cap06.md).
 
 ### 3.4. Lista de exercícios
 
@@ -120,7 +122,7 @@ Estas são as noções básicas de escrever programas em C, dando-lhe o suficien
 #### A diretiva `#define`
 
 2. Use `#define` para criar duas constantes, `VERDADEIRO` como `1` e `FALSO` como `0`, e escreva um pequeno programa que declare uma variável `int encontrou` e a use dentro de um `if`, comparando com `VERDADEIRO`. Depois, imagine (sem rodar) qual seria o texto exato que o pré-processador entrega ao compilador, com `VERDADEIRO`/`FALSO` já substituídos.
-3. Reescreva o Exercício 8 da lista do Capítulo 2 (números amigáveis) definindo, com `#define`, um `LIMITE` para o intervalo de busca (por exemplo, `#define LIMITE 10000`), e use `LIMITE` no lugar do número mágico espalhado pelo código.
+3. Reescreva o Exercício 18 da lista do Capítulo 2 (números amigáveis) definindo, com `#define`, um `LIMITE` para o intervalo de busca (por exemplo, `#define LIMITE 10000`), e use `LIMITE` no lugar do número mágico espalhado pelo código.
 4. *(desafio)* A diretiva `#define` também aceita "parâmetros", nesse formato:
 
     ```c

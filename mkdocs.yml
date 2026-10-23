@@ -2,10 +2,9 @@ site_name: "C para Programadores Python e VisuAlg"
 site_description: "Adaptado de 'C for Python Programmers' (Carl Burch / Elizabeth Patitsas), ampliado com comparações e exercícios de mapeamento Python/VisuAlg → C."
 site_author: "Sergio Costa"
 
-# Troque pelo seu usuário/repositório do GitHub antes de publicar:
-# site_url: https://SEU-USUARIO.github.io/SEU-REPOSITORIO/
-# repo_url: https://github.com/SEU-USUARIO/SEU-REPOSITORIO
-# repo_name: SEU-USUARIO/SEU-REPOSITORIO
+site_url: https://lambdageo-edu.github.io/book-introducao-a-programacao-c/
+repo_url: https://github.com/lambdageo-edu/book-introducao-a-programacao-c
+repo_name: lambdageo-edu/book-introducao-a-programacao-c
 
 docs_dir: docs
 

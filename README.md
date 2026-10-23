@@ -1,6 +1,6 @@
 # C para Programadores Python e VisuAlg
 
-Site MkDocs, adaptado a partir de ["C for Python Programmers"](https://www.cs.toronto.edu/~patitsas/cs190/c_for_python.html), de Carl Burch (Hendrix College, 2011) e Elizabeth Patitsas (University of Toronto, 2012) — obra original em [toves.org/books/cpy/](http://www.toves.org/books/cpy/), licenciada sob [CC BY-SA 3.0 US](http://creativecommons.org/licenses/by-sa/3.0/us/). Esta versão traduz o conteúdo para português e amplia com comparações e exercícios de mapeamento **Python/VisuAlg → C**, listas de exercícios por capítulo, e capítulos novos (Vetores e Strings, Structs, Ponteiros e Alocação Dinâmica). Por ser uma obra derivada, este repositório é distribuído sob a mesma licença — veja [`LICENSE`](LICENSE).
+Site MkDocs, adaptado a partir de ["C for Python Programmers"](https://www.cs.toronto.edu/~patitsas/cs190/c_for_python.html), de Carl Burch (Hendrix College, 2011) e Elizabeth Patitsas (University of Toronto, 2012) — obra original em [toves.org/books/cpy/](http://www.toves.org/books/cpy/), licenciada sob [CC BY-SA 3.0 US](http://creativecommons.org/licenses/by-sa/3.0/us/). Esta versão traduz o conteúdo para português e amplia com comparações e exercícios de mapeamento **Python/VisuAlg → C**, listas de exercícios por capítulo, e capítulos novos (Vetores e Strings, Structs, Ponteiros e Alocação Dinâmica, Compilação Separada e Bibliotecas Externas). Por ser uma obra derivada, este repositório é distribuído sob a mesma licença — veja [`LICENSE`](LICENSE).
 
 O ponto de partida imediato deste projeto foi [profsergiocosta/cpy-ptbr](https://github.com/profsergiocosta/cpy-ptbr), uma tradução para português dos três primeiros capítulos da obra original.
 
@@ -28,9 +28,9 @@ Depois abra `http://127.0.0.1:8000` no navegador. O `mkdocs serve` recarrega aut
    git push -u origin main
    ```
 
-2. Em `mkdocs.yml`, descomente e ajuste `site_url`, `repo_url` e `repo_name` com o seu usuário/repositório.
+2. Em `mkdocs.yml`, ajuste `site_url`, `repo_url` e `repo_name` se publicar em outro usuário/repositório (os valores atuais apontam para `lambdageo-edu/book-introducao-a-programacao-c`).
 
-3. O workflow em `.github/workflows/deploy.yml` já está configurado: a cada `push` na branch `main`, ele builda o site com MkDocs Material e publica na branch `gh-deploy` (`gh-pages`, criada automaticamente pelo comando `mkdocs gh-deploy`).
+3. O workflow em `.github/workflows/deploy.yml` já está configurado: a cada `push` na branch `main`, ele builda o site com MkDocs Material e publica na branch `gh-pages`, criada automaticamente pelo comando `mkdocs gh-deploy`.
 
 4. No GitHub, vá em **Settings → Pages** e, em "Source", selecione a branch `gh-pages` (pasta `/ (root)`). Depois do primeiro workflow rodar com sucesso, o site fica disponível em `https://SEU-USUARIO.github.io/SEU-REPOSITORIO/`.
 
@@ -51,6 +51,8 @@ docs/
   cap04.md   # 4. Vetores e Strings
   cap05.md   # 5. Structs (registros)
   cap06.md   # 6. Ponteiros e Alocação Dinâmica
+  cap07.md   # 7. Compilação Separada e Bibliotecas Externas
+  conclusao.md
   src/       # fontes C soltos usados como exemplo no texto
 mkdocs.yml
 requirements.txt
