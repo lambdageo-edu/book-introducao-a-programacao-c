@@ -181,7 +181,7 @@ fimalgoritmo
 ```
 
 !!! warning "scanf(\"%s\", ...) é perigoso"
-    O `scanf("%s", nome)` não sabe que `nome` só tem 20 posições — se o usuário digitar um texto maior que isso, o `scanf` vai escrever além do fim do vetor, exatamente o tipo de comportamento sem checagem de limites que vimos na [Seção 2.5](cap02.md#25-arrays). Uma forma mais segura é limitar o tamanho no próprio formato — `scanf("%19s", nome)` lê no máximo 19 caracteres, deixando espaço para o `'\0'` — ou ler a linha inteira com `fgets(nome, sizeof nome, stdin)`, que respeita o tamanho do vetor e também aceita espaços (mas guarda o `'\n'` do Enter no final da string).
+    O `scanf("%s", nome)` não sabe que `nome` só tem 20 posições — se o usuário digitar um texto maior que isso, o `scanf` vai escrever além do fim do vetor, exatamente o tipo de comportamento sem checagem de limites que vimos na [Seção 2.5](cap02.md#25-arrays). Uma forma mais segura é limitar o tamanho no próprio formato — `scanf("%19s", nome)` lê no máximo 19 caracteres, deixando espaço para o `'\0'` — ou ler a linha inteira com `fgets`, que respeita o tamanho do vetor e também aceita espaços (veja o fim da [Seção 4.4](#44-funcoes-de-string-stringh)).
 
 ### 4.4. Funções de string (`<string.h>`)
 
@@ -246,6 +246,43 @@ Note que `strcat(nome, sobrenome)` exige que o vetor `nome` já tenha espaço so
 
 !!! warning "strcpy e strcat também não checam limites"
     Assim como o `scanf("%s", ...)` da Seção 4.3, nem `strcpy` nem `strcat` sabem o tamanho do vetor de destino — se a string de origem (ou o resultado da concatenação) não couber, eles escrevem além do fim do vetor sem avisar, o mesmo tipo de comportamento sem checagem de limites que vimos na [Seção 2.5](cap02.md#25-arrays). Existem variantes mais seguras, como `strncpy` (que recebe um tamanho máximo) e `snprintf`, mas isso fica para mais adiante — por enquanto, o cuidado prático é sempre declarar o vetor de destino com folga suficiente.
+
+#### Lendo uma linha inteira: `fgets`
+
+O `scanf("%s", ...)` para de ler no primeiro espaço: se o usuário digitar `Maria Silva`, `nome` recebe só `"Maria"`. Para ler a linha inteira — o que o `input()` do Python e o `leia` de uma `cadeia` no VisuAlg fazem naturalmente — C oferece a função `fgets`, também de `<stdio.h>`:
+
+```c
+#include <stdio.h>
+#include <string.h>
+
+int main() {
+    char nome[30];
+
+    printf("Nome completo: ");
+    fgets(nome, sizeof nome, stdin);     // lê no máximo 29 caracteres + o '\0'
+    nome[strcspn(nome, "\n")] = '\0';    // remove o '\n' do Enter, se houver
+
+    printf("Ola, %s! (%zu caracteres)\n", nome, strlen(nome));
+    return 0;
+}
+```
+
+Os três parâmetros de `fgets` são o vetor de destino, o tamanho desse vetor e de onde ler (`stdin` é o teclado). Como recebe o tamanho, `fgets` **nunca escreve além do fim do vetor**: se a linha digitada for maior, ela lê só o que cabe e deixa o resto para a próxima leitura. (O `sizeof nome` dá o tamanho do vetor porque `nome` foi declarado nesta mesma função; dentro de uma função que o recebe como parâmetro isso não funciona mais — o porquê fica para o Capítulo 6.)
+
+Diferente do `input()` do Python, `fgets` **guarda o `'\n'`** do Enter no fim da string, quando ele cabe. A segunda linha do exemplo o remove: `strcspn(nome, "\n")` devolve a posição do primeiro `'\n'` (ou o tamanho da string, se não houver nenhum), e trocar esse caractere por `'\0'` encurta a string ali.
+
+!!! warning "Misturar `scanf` e `fgets`"
+    Depois de um `scanf("%d", &idade)`, o Enter que o usuário digitou continua no buffer de entrada. Um `fgets` logo em seguida lê esse Enter sozinho e devolve uma linha vazia, sem esperar o usuário. Para evitar isso, descarte o resto da linha antes do `fgets`:
+
+    ```c
+    int c;
+    while ((c = getchar()) != '\n' && c != EOF) { }   // consome o que sobrou da linha
+    ```
+
+| Quero ler... | C | VisuAlg | Python |
+|---|---|---|---|
+| uma palavra | `scanf("%19s", s);` | `leia(s)` | `input().split()[0]` |
+| a linha inteira | `fgets(s, sizeof s, stdin);` + remover o `'\n'` | `leia(s)` | `input()` |
 
 !!! question "Exercício de mapeamento 4.2"
     Em Python:
@@ -321,7 +358,116 @@ Repare como, de novo, o Python é o único dos três que consegue inicializar a 
 
     Esse trecho imprime as cores cujo nome tem mais de 5 letras. Escreva a versão em C (dica: qual das funções da tabela da Seção 4.4 substitui `compr`?).
 
-### 4.6. Lista de exercícios
+### 4.6. Matrizes (vetores bidimensionais)
+
+O vetor de strings da seção anterior já era, na verdade, um vetor de vetores: `char nomes[3][20]` são 3 vetores de 20 `char`. A mesma ideia vale para qualquer tipo, e é assim que C representa uma **matriz** — uma tabela com linhas e colunas.
+
+```c
+int m[3][4];        // 3 linhas, 4 colunas: 12 inteiros
+m[0][0] = 7;        // linha 0, coluna 0
+m[2][3] = 9;        // última linha, última coluna
+```
+
+Assim como um vetor, uma matriz pode ser inicializada na declaração, agora com chaves aninhadas — uma lista por linha:
+
+```c
+int m[2][3] = {
+    {1, 2, 3},
+    {4, 5, 6}
+};
+```
+
+Para percorrer uma matriz, usamos dois laços aninhados: o de fora anda pelas linhas, o de dentro pelas colunas. O programa abaixo imprime a matriz e a soma de cada linha:
+
+```c
+#include <stdio.h>
+
+int main() {
+    int m[2][3] = {
+        {1, 2, 3},
+        {4, 5, 6}
+    };
+
+    for (int i = 0; i < 2; i++) {
+        int soma = 0;
+        for (int j = 0; j < 3; j++) {
+            printf("%3d", m[i][j]);
+            soma += m[i][j];
+        }
+        printf("   | soma = %d\n", soma);
+    }
+    return 0;
+}
+```
+
+```
+algoritmo "matriz"
+var
+    m: vetor[0..1, 0..2] de inteiro
+    i, j, soma: inteiro
+inicio
+    // (preenchimento de m omitido)
+    para i de 0 ate 1 faca
+        soma <- 0
+        para j de 0 ate 2 faca
+            escreva(m[i, j]:3)
+            soma <- soma + m[i, j]
+        fimpara
+        escreval("   | soma = ", soma)
+    fimpara
+fimalgoritmo
+```
+
+```python
+m = [[1, 2, 3],
+     [4, 5, 6]]
+
+for linha in m:
+    print(*linha, "  | soma =", sum(linha))
+```
+
+Duas diferenças de sintaxe para guardar: o VisuAlg declara as duas faixas de índice dentro de um único colchete e acessa com vírgula (`m[i, j]`); C e Python usam um par de colchetes por dimensão (`m[i][j]`). E em Python, cuidado ao criar uma matriz "vazia": `[[0] * 3] * 2` cria duas referências para **a mesma** linha (alterar `m[0][0]` muda também `m[1][0]`); o jeito certo é `[[0] * 3 for _ in range(2)]`. Em C esse problema não existe: `int m[2][3] = {0};` reserva as 6 posições, todas independentes e zeradas.
+
+| | C | VisuAlg | Python |
+|---|---|---|---|
+| declarar 3×4 | `int m[3][4];` | `m: vetor[0..2, 0..3] de inteiro` | `m = [[0] * 4 for _ in range(3)]` |
+| acessar | `m[i][j]` | `m[i, j]` | `m[i][j]` |
+| tamanho fixo | sim | sim | não |
+
+Na memória, C guarda a matriz **linha após linha**, em um único bloco contínuo: em `int m[3][4]`, o elemento `m[i][j]` fica na posição `i * 4 + j` desse bloco. É por isso que, ao passar uma matriz para uma função, o número de **colunas** precisa aparecer no parâmetro — sem ele, o compilador não saberia quantos elementos pular para chegar à linha seguinte. O número de linhas pode ficar em branco, como num vetor comum:
+
+```c
+void imprime(int m[][4], int linhas) {
+    for (int i = 0; i < linhas; i++) {
+        for (int j = 0; j < 4; j++) {
+            printf("%3d", m[i][j]);
+        }
+        printf("\n");
+    }
+}
+```
+
+Assim como um vetor, uma matriz passada para uma função **não é copiada**: alterações feitas dentro da função aparecem na matriz original (Seção 4.2).
+
+!!! question "Exercício de mapeamento 4.4"
+    Em VisuAlg:
+
+    ```
+    var
+        m: vetor[0..2, 0..2] de inteiro
+        i, soma: inteiro
+    inicio
+        // (preenchimento de m omitido)
+        soma <- 0
+        para i de 0 ate 2 faca
+            soma <- soma + m[i, i]
+        fimpara
+        escreval("Soma da diagonal: ", soma)
+    ```
+
+    Escreva o equivalente em C, inicializando `m` na declaração com os valores de 1 a 9 (linha por linha). Depois, transforme o laço em uma função `int soma_diagonal(int m[][3])`.
+
+### 4.7. Lista de exercícios
 
 #### Vetores
 
@@ -343,7 +489,7 @@ Repare como, de novo, o Python é o único dos três que consegue inicializar a 
     Sem executar, determine qual será a configuração final do vetor após a execução do código.
 6. Faça um programa que leia N valores (N informado pelo usuário, até um máximo de 100), guarde-os em um vetor, e imprima: (a) o maior valor; (b) a média dos valores; (c) os valores em ordem crescente; (d) o subconjunto de valores primos contidos no vetor.
 7. Faça um programa que preencha um vetor de inteiros com 10 posições e imprima: o maior elemento, o menor elemento, a soma de todos os elementos, e a média aritmética entre eles.
-8. Faça um programa que, dadas duas matrizes A e B de dimensão 5×5 (`int a[5][5];` declara uma matriz 5×5 de inteiros; acessa-se com `a[i][j]`), calcule e imprima: (a) a soma das duas matrizes; (b) a soma dos elementos da diagonal principal de cada matriz; (c) o produto das duas matrizes.
+8. Faça um programa que, dadas duas matrizes A e B de dimensão 5×5 (Seção 4.6), calcule e imprima: (a) a soma das duas matrizes; (b) a soma dos elementos da diagonal principal de cada matriz; (c) o produto das duas matrizes.
 9. Em um tabuleiro de xadrez 8×8, cada posição guarda um código: `0` = ausência de peça, `1` = peão, `2` = cavalo, `3` = torre, `4` = bispo, `5` = rei, `6` = rainha. Leia um tabuleiro 8×8 (64 valores) para uma matriz `int tabuleiro[8][8]` e calcule: (a) a soma entre a quantidade de peões e de bispos; (b) a quantidade de posições sem peça alguma.
 10. A tabela abaixo dá a distância, em km, entre 5 cidades:
 
@@ -355,7 +501,7 @@ Repare como, de novo, o Python é o único dos três que consegue inicializar a 
     | **Cidade 4** | 5 | 28 | 18 | 0 | 22 |
     | **Cidade 5** | 15 | 20 | 25 | 22 | 0 |
 
-    Guarde essa tabela em uma matriz `int dist[5][5]` já inicializada no código (uma matriz literal, como vimos na Seção 4.1) e escreva um programa que: (a) leia pares de códigos de cidade (1 a 5) e informe a distância entre elas, repetindo até que o usuário digite 0 e 0; (b) dado um percurso informado como uma sequência de códigos de cidade (por exemplo, `1 2 3 2 5 1 4`), imprima a distância total percorrida, somando a distância entre cada cidade e a próxima da sequência.
+    Guarde essa tabela em uma matriz `int dist[5][5]` já inicializada no código (uma matriz literal, como vimos na Seção 4.6) e escreva um programa que: (a) leia pares de códigos de cidade (1 a 5) e informe a distância entre elas, repetindo até que o usuário digite 0 e 0; (b) dado um percurso informado como uma sequência de códigos de cidade (por exemplo, `1 2 3 2 5 1 4`), imprima a distância total percorrida, somando a distância entre cada cidade e a próxima da sequência.
 11. Um cinema com capacidade para 20 lugares está sempre lotado. Em uma sessão, cada um dos 20 espectadores respondeu um questionário com sua idade e sua opinião sobre o filme (uma string: `"otimo"`, `"bom"`, `"regular"`, `"ruim"` ou `"pessimo"`). Leia esses 20 pares (idade, opinião) e calcule: (a) a quantidade de respostas `"otimo"`; (b) a diferença percentual entre respostas `"bom"` e `"regular"`; (c) a média de idade das pessoas que responderam `"ruim"`; (d) a maior idade entre quem respondeu `"pessimo"`. Use `strcmp` para comparar as opiniões — lembre-se de que `==` não funciona para strings, como vimos na Seção 4.4.
 12. Considere o programa abaixo, que lê as notas de uma turma e calcula estatísticas:
 

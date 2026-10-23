@@ -32,6 +32,9 @@ graph TD
     ```
     Isso gerará no seu diretório os arquivos `main.i` (código pré-processado), `main.s` (código em assembly) e `main.o` (código de objeto), além do executável `main`.
 
+!!! tip "Para ver em vídeo"
+    O processo completo, etapa por etapa, aparece no vídeo [O processo de compilação](https://youtu.be/7oLYa0oWa78) (canal Prof. Sérgio Costa).
+
 ### 7.1.1. Aprofundando: macros no pré-processamento
 
 Vimos rapidamente a diretiva `#define` na [Seção 3.3](cap03.md#33-constantes), tanto para constantes simples quanto para macros com "parâmetros" — mas sem explicar exatamente **quando**, no processo de compilação, essa substituição acontece. Agora que você já viu as quatro etapas acima, a resposta é direta: tudo isso acontece na primeira etapa, o **pré-processamento**, antes mesmo do compilador de C ver uma única linha do seu código.
@@ -424,6 +427,32 @@ gcc $(pkg-config --cflags libpq) exemplopq.c -o programa $(pkg-config --libs lib
 ```
 
 Isso torna o processo de compilação com bibliotecas externas muito mais portátil, já que o `pkg-config` descobrirá os caminhos corretos independentemente de o sistema ser Ubuntu, Fedora ou macOS.
+
+#### Na prática: os dois erros clássicos
+
+Vale a pena ver, com um programa real, o que acontece quando falta cada uma dessas opções. O programa abaixo usa a `libpq` só para perguntar a versão da biblioteca instalada — não precisa de um servidor PostgreSQL rodando:
+
+```c
+#include <stdio.h>
+#include <libpq-fe.h>   /* cabeçalho da libpq */
+
+int main(void) {
+    int v = PQlibVersion();   /* ex.: 160015 significa 16.15 */
+    printf("libpq versao %d.%d\n", v / 10000, v % 10000);
+    return 0;
+}
+```
+
+Depois de instalar `libpq-dev`, compile-o de três jeitos:
+
+1. **Sem nenhuma opção** — `gcc versaopq.c -o versaopq` — o erro aparece já no **pré-processamento**: `fatal error: libpq-fe.h: No such file or directory`. O pré-processador não sabe em que pasta está o cabeçalho; falta o `-I`.
+2. **Só com o `-I`** — `gcc -I/usr/include/postgresql versaopq.c -o versaopq` — agora o código compila, mas a **ligação** falha: `undefined reference to 'PQlibVersion'`. O cabeçalho só tem o protótipo (Seção 3.1); o código da função está na biblioteca, que não foi passada ao linker; falta o `-lpq`.
+3. **Com o `pkg-config`** — `gcc $(pkg-config --cflags libpq) versaopq.c -o versaopq $(pkg-config --libs libpq)` — compila, liga e roda, imprimindo algo como `libpq versao 16.15`.
+
+Reconhecer em qual etapa o erro aconteceu (`No such file` → cabeçalho, pré-processamento; `undefined reference` → biblioteca, ligação) resolve a maior parte dos problemas com bibliotecas externas em C. Algumas bibliotecas também trazem um utilitário próprio que faz o papel do `pkg-config`; o PostgreSQL, por exemplo, tem o `pg_config` (`pg_config --includedir`, `pg_config --libdir`).
+
+!!! tip "Para ver em vídeo"
+    O mesmo processo, com outra biblioteca (a libGD, de geração de imagens), aparece no vídeo [Compilando com a libGD](https://youtu.be/7z0sZNmcd-U) (canal Prof. Sérgio Costa).
 
 ---
 
