@@ -20,13 +20,13 @@ graph TD
     F[Bibliotecas do Sistema / Outros .o] -->|4. Ligador / Linker| E
 ```
 
-1. **Pré-processamento**: O pré-processador processa as diretivas que começam com `#` (como `#include` e `#define`). Ele essencialmente "copia e cola" o conteúdo dos arquivos de cabeçalho (`.h`) no topo do arquivo `.c` e substitui as macros. O resultado é um código C puro intermediário (geralmente oculto, com extensão `.i`).
+1. **Pré-processamento**: O pré-processador processa as diretivas que começam com `#` (como `#include` e `#define`). Ele essencialmente "copia e cola" o conteúdo de cada arquivo de cabeçalho (`.h`) no lugar da linha `#include` correspondente e substitui as macros. O resultado é um código C puro intermediário (geralmente oculto, com extensão `.i`).
 2. **Compilação**: O compilador traduz o código C expandido para linguagem assembly específica da arquitetura do seu processador (gerando arquivos `.s`).
 3. **Montagem (Assembly)**: O montador traduz o código assembly em código de máquina binário. O resultado é um **arquivo de objeto** (geralmente com extensão `.o` no Linux/macOS ou `.obj` no Windows). O arquivo de objeto contém o código binário das suas funções, mas ainda não sabe onde estão as funções de outros arquivos que ele chama (elas ficam marcadas como "endereços pendentes").
 4. **Ligação (Linking)**: O ligador (*linker*) junta todos os arquivos de objeto (`.o`) do seu projeto com o código de máquina de bibliotecas pré-compiladas (como a biblioteca padrão do C, `libc`) para resolver todos os endereços pendentes e gerar o arquivo executável final.
 
 !!! tip "Observando o processo com o GCC"
-    Você pode pedir para o `gcc` manter todos os arquivos intermediários criados durante a compilação de um arquivo `main.c` com a tag `--save-temps`:
+    Você pode pedir para o `gcc` manter todos os arquivos intermediários criados durante a compilação de um arquivo `main.c` com a opção `--save-temps`:
     ```bash
     gcc --save-temps main.c -o main
     ```
@@ -36,7 +36,7 @@ graph TD
 
 Vimos rapidamente a diretiva `#define` na [Seção 3.3](cap03.md#33-constantes), tanto para constantes simples quanto para macros com "parâmetros" — mas sem explicar exatamente **quando**, no processo de compilação, essa substituição acontece. Agora que você já viu as quatro etapas acima, a resposta é direta: tudo isso acontece na primeira etapa, o **pré-processamento**, antes mesmo do compilador de C ver uma única linha do seu código.
 
-O pré-processador não entende C — ele só entende texto. Quando encontra uma diretiva `#define`, ele simplesmente **copia e cola** a substituição em todo lugar onde o nome aparece depois, sem checar tipos, sem saber o que é uma variável ou uma expressão. É por isso que a tag `--save-temps`, vista na dica acima, é tão útil para depurar macros: o arquivo `.i` gerado mostra exatamente o texto que o compilador de C recebe, já com toda substituição feita.
+O pré-processador não entende C — ele só entende texto. Quando encontra uma diretiva `#define`, ele simplesmente **copia e cola** a substituição em todo lugar onde o nome aparece depois, sem checar tipos, sem saber o que é uma variável ou uma expressão. É por isso que a opção `--save-temps`, vista na dica acima, é tão útil para depurar macros: o arquivo `.i` gerado mostra exatamente o texto que o compilador de C recebe, já com toda substituição feita.
 
 Considere:
 
@@ -140,7 +140,7 @@ void exibir(const ContaBancaria *c) {
 ```
 
 !!! note "O `const` antes do ponteiro"
-    Repare no `const` antes de `ContaBancaria *c` no protótipo de `exibir`. Isso é uma promessa ao compilador: esta função só vai *ler* os campos de `c` através do ponteiro, nunca alterá-los. Se o corpo da função tentar fazer `c->saldo = 0;`, o compilador recusa a compilação. É uma forma de deixar explícito, só pela assinatura da função, que ela não modifica o struct original — parecido com o que fizemos na Seção 5.2 ao decidir entre receber um struct por valor ou por ponteiro, só que aqui pedimos o "melhor dos dois mundos": a eficiência de passar só um endereço, sem o risco de alterar o original.
+    Repare no `const` antes de `ContaBancaria *c` no protótipo de `exibir`. Isso é uma promessa ao compilador: esta função só vai *ler* os campos de `c` através do ponteiro, nunca alterá-los. Se o corpo da função tentar fazer `c->saldo = 0;`, o compilador recusa a compilação. É uma forma de deixar explícito, só pela assinatura da função, que ela não modifica o struct original — parecido com o que discutimos na Seção 5.5 ao decidir entre receber um struct por valor ou por ponteiro, só que aqui pedimos o "melhor dos dois mundos": a eficiência de passar só um endereço, sem o risco de alterar o original.
 
 #### 3. O programa principal: `main.c`
 
@@ -177,7 +177,7 @@ Em vez de compilar tudo de uma vez com `gcc main.c conta.c -o programa`, podemos
    ```bash
    gcc -c conta.c -o conta.o
    ```
-   *A tag `-c` diz ao compilador para parar após a etapa de montagem, ou seja, gerar o `.o` sem tentar rodar o linker.*
+   *A opção `-c` diz ao compilador para parar após a etapa de montagem, ou seja, gerar o `.o` sem tentar rodar o linker.*
 
 2. **Compilar `main.c` em arquivo de objeto (`main.o`)**:
    ```bash
@@ -358,7 +358,7 @@ minha_conta.exibir()
 | **Detecção de Erros** | Erros de digitação de funções são pegos na compilação ou linkagem | Erros de digitação de funções só dão erro quando a linha é executada (*NameError*) | Pegos na verificação de sintaxe antes de rodar |
 
 !!! question "Exercício de mapeamento 7.1"
-    Se você alterar apenas o corpo da função `depositar` no arquivo `conta.c` para cobrar uma taxa de R$ 0.10 a cada depósito, quais arquivos precisam ser recompilados (usando a tag `-c`) e quais precisam ser linkados novamente para atualizar o executável final? Responda sem rodar os comandos.
+    Se você alterar apenas o corpo da função `depositar` no arquivo `conta.c` para cobrar uma taxa de R$ 0.10 a cada depósito, quais arquivos precisam ser recompilados (usando a opção `-c`) e quais precisam ser linkados novamente para atualizar o executável final? Responda sem rodar os comandos.
 
 ---
 
@@ -380,7 +380,7 @@ npm install axios
 ```
 A biblioteca é baixada para a pasta `node_modules` local do projeto. Quando fazemos `import axios from 'axios'` ou `require('axios')`, o NodeJS resolve a dependência procurando recursivamente na pasta `node_modules`. Toda a resolução de caminho é abstraída pelo runtime.
 
-#### C (compilação e linkagem manual com tags)
+#### C (compilação e linkagem manual com opções)
 Em C, as coisas são mais primitivas e próximas do sistema operacional. Se quisermos usar uma biblioteca externa (como a biblioteca do PostgreSQL `libpq` ou o driver do MongoDB `libmongoc`), o processo costuma ser:
 
 1. **Instalar os arquivos de desenvolvimento no sistema**:
@@ -392,11 +392,11 @@ Em C, as coisas são mais primitivas e próximas do sistema operacional. Se quis
 
 2. **Dizer ao compilador onde achar os arquivos**:
    Para compilar o código C, precisamos dizer ao compilador:
-   - **Onde estão os arquivos de cabeçalho (`.h`)**: usando a tag `-I` (Include). Por padrão, o GCC busca em `/usr/include`, mas se a biblioteca estiver em outro local, você precisa de `-I/caminho/para/headers`.
-   - **Onde estão os arquivos binários da biblioteca (`.so` ou `.a`)**: usando a tag `-L` (Library path), por exemplo `-L/usr/lib`.
-   - **Qual é o nome da biblioteca que queremos linkar**: usando a tag `-l` (link), por exemplo `-lpq` (para o PostgreSQL) ou `-lmongoc-1.0` (para o MongoDB).
+   - **Onde estão os arquivos de cabeçalho (`.h`)**: usando a opção `-I` (Include). Por padrão, o GCC busca em `/usr/include`, mas se a biblioteca estiver em outro local, você precisa de `-I/caminho/para/headers`.
+   - **Onde estão os arquivos binários da biblioteca (`.so` ou `.a`)**: usando a opção `-L` (Library path), por exemplo `-L/usr/lib`.
+   - **Qual é o nome da biblioteca que queremos linkar**: usando a opção `-l` (link), por exemplo `-lpq` (para o PostgreSQL) ou `-lmongoc-1.0` (para o MongoDB).
 
-Abaixo está o exemplo conceitual de como o compilador precisa receber essas tags:
+Abaixo está o exemplo conceitual de como o compilador precisa receber essas opções:
 
 ```bash
 gcc -I/usr/include/postgresql exemplopq.c -o programa -L/usr/lib/postgresql -lpq
@@ -404,14 +404,14 @@ gcc -I/usr/include/postgresql exemplopq.c -o programa -L/usr/lib/postgresql -lpq
 
 #### O salvador: `pkg-config`
 
-Decorar todos os caminhos de cabeçalhos e nomes de bibliotecas de terceiros no sistema é impraticável. Para resolver isso, usamos uma ferramenta utilitária chamada `pkg-config`. Ela consulta a instalação da biblioteca no sistema e imprime as tags corretas para o compilador:
+Decorar todos os caminhos de cabeçalhos e nomes de bibliotecas de terceiros no sistema é impraticável. Para resolver isso, usamos uma ferramenta utilitária chamada `pkg-config`. Ela consulta a instalação da biblioteca no sistema e imprime as opções corretas para o compilador:
 
-- Para ver as tags de inclusão de cabeçalho (Cflags):
+- Para ver as opções de inclusão de cabeçalho (Cflags):
   ```bash
   pkg-config --cflags libpq
   # Saída típica: -I/usr/include/postgresql
   ```
-- Para ver as tags de linkagem (Libs):
+- Para ver as opções de linkagem (Libs):
   ```bash
   pkg-config --libs libpq
   # Saída típica: -lpq

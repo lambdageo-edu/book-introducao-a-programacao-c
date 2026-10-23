@@ -26,6 +26,6 @@ Conceitos como listas encadeadas, pilhas, filas, árvores binárias, tabelas has
 Como continuação natural dos seus estudos, recomendamos fortemente o material:
 
 !!! info "Próximo Passo Recomendado"
-    Visite e estude o material de **[Estruturas de Dados](https://lambdageo.github.io/estrutura-dados/)**, que utiliza toda a base de C desenvolvida neste livro para construir e analisar algoritmos e estruturas de dados de forma profunda.
+    Visite e estude o material de **[Estruturas de Dados](https://lambdageo-edu.github.io/book-estrutura-de-dados/)**, que utiliza toda a base de C desenvolvida neste livro para construir e analisar algoritmos e estruturas de dados de forma profunda.
 
 Bons estudos e continue programando!

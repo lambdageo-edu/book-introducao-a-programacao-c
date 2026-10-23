@@ -1,6 +1,6 @@
 ## 1. Construindo um simples programa
 
-Começaremos com vários princípios gerais, usando para isso programa C completo, mas limitado, até o final da Seção 1.
+Começaremos com vários princípios gerais, que vamos reunir, ao longo deste capítulo, em um programa C completo, mas simples.
 
 Ao longo do texto, sempre que fizer sentido, vamos colocar lado a lado o mesmo trecho em **C**, em **Python** e em **VisuAlg** (o pseudocódigo/IDE usado em muitas disciplinas introdutórias no Brasil). A ideia não é decorar C do zero, e sim **mapear** o que você já sabe fazer em Python/VisuAlg para a sintaxe de C.
 
@@ -37,7 +37,7 @@ Por outro lado, um **interpretador** lê o programa escrito pelo usuário e o ex
 
 Ser compilado tem algumas implicações radicais no design da linguagem. C é projetada para que o compilador possa dizer tudo o que precisa saber para traduzir o programa C sem realmente executar o programa.
 
-> Observação 1: esse texto tem como objetivo ser mais simples. Por exemplo, o processo de execução em C é feito em diversas outras etapas, que inclui a **pré-compilaação** e a **linkedição**.
+> Observação 1: esse texto tem como objetivo ser mais simples. Por exemplo, o processo de compilação em C é feito em diversas etapas, que incluem o **pré-processamento** e a **ligação** (*linkedição*) — veremos todas elas no Capítulo 7.
 
 > Observação 2: alguns interpretadores atuais podem usar um processo de compilação para um código intermediário. Então, o código executado não é exatamente o código escrito pelo programador.
 
@@ -52,13 +52,13 @@ fimalgoritmo
 
 Repare que, apesar de não compilar, o VisuAlg já usa palavras-chave para delimitar onde o algoritmo começa e termina (`inicio` / `fimalgoritmo`) — isso vai ajudar bastante quando chegarmos nas chaves `{ }` de C, na Seção 1.3.
 
-### 1.2. Declarações Variáveis
+### 1.2. Declaração de variáveis
 
-Entre as informações que compilador da linguagem C requer, um dos exemplos mais notáveis é a **declarações de variáveis**, informando ao compilador sobre a variável antes que a variável seja realmente usada. Isso é típico de muitas linguagens de programação proeminentes, particularmente entre aquelas que devem ser compiladas antes de serem executadas.
+Entre as informações que compilador da linguagem C requer, um dos exemplos mais notáveis é a **declaração de variáveis**, informando ao compilador sobre a variável antes que a variável seja realmente usada. Isso é típico de muitas linguagens de programação proeminentes, particularmente entre aquelas que devem ser compiladas antes de serem executadas.
 
 > Observação: essas linguagens que requerem a declaração de variáveis, associando cada variável a um tipo, são conhecidas como estaticamente tipadas.
 
-Em C, a declaração da variável define o tipo **da variável**, especificando se é um inteiro (`int`), um número de ponto flutuante (`double`), caracter (`char`), ou algum outro tipo que estudaremos depois. Uma vez que você declara que uma variável é de um tipo particular, você não pode mudar seu tipo: Se a variável `x` é declarada do tipo`double`, e você atribui `x = 3;` , então ` x` irá, na verdade, manter o valor de ponto flutuante 3.0 em vez do inteiro 3. Você pode, se desejar, imaginar que `x` é uma caixa que é capaz apenas de manter valores `double `; se você tentar colocar alguma outra coisa dentro dele (como o `int` valor 3), o compilador o converterá em um `double` para que ele caiba.
+Em C, a declaração da variável define o tipo **da variável**, especificando se é um inteiro (`int`), um número de ponto flutuante (`double`), caracter (`char`), ou algum outro tipo que estudaremos depois. Uma vez que você declara que uma variável é de um tipo particular, você não pode mudar seu tipo: Se a variável `x` é declarada do tipo `double`, e você atribui `x = 3;`, então `x` irá, na verdade, manter o valor de ponto flutuante 3.0 em vez do inteiro 3. Você pode, se desejar, imaginar que `x` é uma caixa que é capaz apenas de manter valores `double`; se você tentar colocar alguma outra coisa dentro dele (como o `int` valor 3), o compilador o converterá em um `double` para que ele caiba.
 
 Declarar uma variável é bastante simples: você insere o tipo da variável, alguns espaços em branco, o nome da variável e um ponto e vírgula:
 
@@ -78,9 +78,9 @@ var
 | `int` | `inteiro` | `int` |
 | `double` / `float` | `real` | `float` |
 | `char` | `caractere` | `str` (1 caractere) |
-| *(não existe tipo string nativo — Seção "Strings")* | `cadeia` | `str` |
+| *(não existe tipo string nativo — veja o Capítulo 4)* | `cadeia` | `str` |
 
-Em C, as de variáveis pertencem a função ou bloco em que são declarada.
+Em C, uma variável pertence à função ou ao bloco (`{ }`) em que foi declarada: fora dele, ela não existe.
 
 Se você esquecer de declarar uma variável, o compilador se recusará a compilar um programa no qual uma variável é usada, mas não é declarada. A mensagem de erro indicará a linha dentro do programa, o nome da variável e uma mensagem como "símbolo não declarado" (symbol undeclared). Por exemplo, dado o seguinte programa:
 
@@ -96,21 +96,21 @@ Uma tentativa de compilação, levaria aos seguintes erros:
 
 ```
 $ gcc programaerrovariavelnaodeclarada.c
-programaerrovariavelnaodeclarada.c:5:5: error: ‘a’ undeclared (first use in this function)
+programaerrovariavelnaodeclarada.c:2:5: error: ‘a’ undeclared (first use in this function)
      a = 10;
      ^
-programaerrovariavelnaodeclarada.c:5:5: note: each undeclared identifier is reported only once for each function it appears in
-programaerrovariavelnaodeclarada.c:6:5: error: ‘b’ undeclared (first use in this function)
+programaerrovariavelnaodeclarada.c:2:5: note: each undeclared identifier is reported only once for each function it appears in
+programaerrovariavelnaodeclarada.c:3:5: error: ‘b’ undeclared (first use in this function)
      b = 20;
      ^
-programaerrovariavelnaodeclarada.c:7:5: error: ‘c’ undeclared (first use in this function)
+programaerrovariavelnaodeclarada.c:4:5: error: ‘c’ undeclared (first use in this function)
      c = a + b;
      ^
 ```
 
 O VisuAlg reclamaria de forma muito parecida se você tentasse usar `a`, `b` e `c` sem declará-los antes no bloco `var` — é exatamente o mesmo tipo de erro que você já deve ter visto lá.
 
-Para um programador Python, parece difícil incluir essas declarações de variáveis em um programa, embora isso seja mais fácil com mais prática. Os programadores de C tendem a sentir que as declarações variáveis valem a menor dor. A maior vantagem é que o compilador irá identificar automaticamente sempre que um nome de variável for digitado incorretamente e apontar diretamente para a linha onde ele está escrito incorretamente. Isso é muito mais conveniente do que executar um programa e descobrir que ele está errado em algum lugar devido ao nome da variável com erros ortográficos.
+Para um programador Python, parece difícil incluir essas declarações de variáveis em um programa, embora isso seja mais fácil com mais prática. Os programadores de C tendem a sentir que as declarações de variáveis compensam o pequeno incômodo. A maior vantagem é que o compilador irá identificar automaticamente sempre que um nome de variável for digitado incorretamente e apontar diretamente para a linha onde ele está escrito incorretamente. Isso é muito mais conveniente do que executar um programa e descobrir que ele está errado em algum lugar devido ao nome da variável com erros ortográficos.
 
 !!! question "Exercício de mapeamento 1.1"
     Em VisuAlg, você escreveria isto para declarar as variáveis de um pequeno cálculo de média:
@@ -196,13 +196,13 @@ Note três diferenças de sintaxe que aparecem toda hora e valem a pena guardar:
 | igualdade (comparação) | `==` | `=` | `==` |
 | delimitador de bloco | `{ }` | palavra-chave de abertura ... `fimXXX` | indentação |
 
-O programa C à esquerda é como eu escreveria. No entanto, o espaço em branco é insignificante, então o computador ficaria tão feliz se eu tivesse escrito o seguinte.
+O programa C acima é como eu escreveria. No entanto, o espaço em branco é insignificante, então o computador ficaria tão feliz se eu tivesse escrito o seguinte.
 
 ```c
 disc=b*b-4*a*c;if(disc<0){
 num_sol=0;}else{t0=-b/a;if(
 disc==0){num_sol=1;sol0=t0/2
-;}else{num_sol=2;t1=sqrt(disc/a;
+;}else{num_sol=2;t1=sqrt(disc)/a;
 sol0=(t0+t1)/2;sol1=(t0-t1)/2;}}
 ```
 
@@ -220,7 +220,7 @@ A maneira como os parâmetros para `printf ()` funcionam é um pouco complicada,
 printf("# solns: %d\n", num_sol);
 ```
 
-Esta linha diz para imprimir usando "# solns:%d\n" como a string de formatação. A função `printf ()` passa por esta string de formatação, imprimindo os caracteres "# solns:" antes de chegar ao caractere de porcentagem '%'. O caractere de porcentagem é especial para `printf ()`: Diz para imprimir um valor especificado em um parâmetro subseqüente. Nesse caso, um _d_ minúsculo segue o caractere de porcentagem, indicando para exibir o parâmetro como um `int` no formato decimal. (O _d_ significa decimal.) Então, quando `printf ()` alcança `%d`, ele olha o valor do parâmetro a seguir (vamos imaginar `num_sol` é 2 neste exemplo) e exibe esse valor. Em seguida, continua através da string de formatação, neste caso, exibindo um caractere de quebra de linha. No geral, o usuário vê a seguinte linha de saída:
+Esta linha diz para imprimir usando "# solns: %d\n" como a string de formatação. A função `printf ()` passa por esta string de formatação, imprimindo os caracteres "# solns:" antes de chegar ao caractere de porcentagem '%'. O caractere de porcentagem é especial para `printf ()`: Diz para imprimir um valor especificado em um parâmetro subseqüente. Nesse caso, um _d_ minúsculo segue o caractere de porcentagem, indicando para exibir o parâmetro como um `int` no formato decimal. (O _d_ significa decimal.) Então, quando `printf ()` alcança `%d`, ele olha o valor do parâmetro a seguir (vamos imaginar `num_sol` é 2 neste exemplo) e exibe esse valor. Em seguida, continua através da string de formatação, neste caso, exibindo um caractere de quebra de linha. No geral, o usuário vê a seguinte linha de saída:
 
 > \# solns: 2
 
@@ -234,7 +234,7 @@ print("# solns:", num_sol)
 escreva("# solns: ", num_sol)
 ```
 
-Como o Python, o C permite incluir caracteres de escape em uma string usando uma barra invertida. A sequência "\n" representa o caractere de quebra de linha. Da mesma forma, "\t" representa o caractere de tabulação, "\" "representa o caractere de aspas duplas e" \\ "representa o caractere de barra invertida. Esses caracteres de escape fazem parte da sintaxe C, não fazem parte da função ` printf () ` (isto é, a string que a função `printf ()` recebe na verdade contém uma nova linha, não uma barra invertida seguida por um _n_. Assim, a natureza da barra invertida é fundamentalmente diferente do caractere percentual, que printf () veria e interpretaria em tempo de execução.)
+Como o Python, o C permite incluir caracteres de escape em uma string usando uma barra invertida. A sequência "\n" representa o caractere de quebra de linha. Da mesma forma, `\t` representa o caractere de tabulação, `\"` representa o caractere de aspas duplas e `\\` representa o caractere de barra invertida. Esses caracteres de escape fazem parte da sintaxe C, não fazem parte da função `printf()` (isto é, a string que a função `printf ()` recebe na verdade contém uma nova linha, não uma barra invertida seguida por um _n_. Assim, a natureza da barra invertida é fundamentalmente diferente do caractere percentual, que printf () veria e interpretaria em tempo de execução.)
 
 Vamos ver outro exemplo.
 
@@ -243,7 +243,7 @@ printf("# solns: %d", num_sol);
 printf("solns: %f, %f", sol0, sol1);
 ```
 
-Vamos supor que `num_sol` contém 2, `sol0` com 4 e `sol1` com 1. Quando o computador alcança essas duas chamadas de função `printf ()`, ele primeiro executa a primeira linha, que exibe "\ # solns: 2 ", E depois o segundo, que mostra " solns: 4000000, 1.000000 ", conforme ilustrado abaixo.
+Vamos supor que `num_sol` contém 2, `sol0` com 4 e `sol1` com 1. Quando o computador alcança essas duas chamadas de função `printf ()`, ele primeiro executa a primeira chamada, que exibe "# solns: 2", e depois a segunda, que mostra "solns: 4.000000, 1.000000", conforme ilustrado abaixo.
 
 > \# solns: 2solns: 4.000000, 1.000000
 
@@ -255,7 +255,7 @@ A segunda chamada para `printf ()` neste exemplo ilustra como a função pode im
 printf("# solns: %dsolns: %f, %f", num_sol, sol0, sol1);
 ```
 
-A propósito, a função `printf ()` exibe "4.00000" ao invés de simplesmente "4" porque a string de formato usa "%f", que diz interpretar os parâmetros como números de ponto flutuante. Se você quiser exibir apenas "4", você pode se sentir tentado a usar "%d". Mas isso não funcionaria, porque `printf ()` interpretaria a representação binária usada para um número de ponto flutuante como uma representação binária para um inteiro, e esses tipos são armazenados de maneiras completamente diferentes. No meu computador, substituir cada "%f" por "%d" leva à seguinte saída:
+A propósito, a função `printf ()` exibe "4.000000" ao invés de simplesmente "4" porque a string de formato usa "%f", que diz interpretar os parâmetros como números de ponto flutuante. Se você quiser exibir apenas "4", você pode se sentir tentado a usar "%d". Mas isso não funcionaria, porque `printf ()` interpretaria a representação binária usada para um número de ponto flutuante como uma representação binária para um inteiro, e esses tipos são armazenados de maneiras completamente diferentes. Mais precisamente, passar um `double` onde o formato espera um `int` é **comportamento indefinido** em C: o resultado muda de um compilador ou máquina para outro (e o `-Wall` avisa sobre isso). No meu computador, substituir cada "%f" por "%d" leva à seguinte saída:
 
 > `# solns: 2solns: 0, 1074790400`
 
@@ -266,7 +266,7 @@ Há uma variedade de caracteres que podem seguir o caractere de porcentagem na s
 * `%f` diz para imprimir um valor `double` em forma de ponto decimal.
 * `%e` diz para imprimir um valor `double` em notação científica (por exemplo, 3.000000e8).
 * `%c` diz para imprimir um valor `char`.
-* `%s` diz para imprimir uma string. Não há nenhum tipo de variável para representar uma string, mas C suporta alguns recursos de string usando matrizes de caracteres. Adiaremos a discussão desses recursos para mais tarde, depois de discutirmos os indicadores, já que as sequências envolvem alguns conceitos mais complexos que ainda não vimos.
+* `%s` diz para imprimir uma string. Não há nenhum tipo de variável para representar uma string, mas C suporta alguns recursos de string usando matrizes de caracteres. Veremos strings no Capítulo 4.
 
 Você também pode incluir um número entre o caractere de porcentagem e o descritor de formato como em "%10d", que diz `printf ()` para justificar à direita um número inteiro decimal em dez colunas.
 
@@ -306,7 +306,7 @@ double expon(double b, int e) {
 
 Uma função C é definida nomeando o tipo de retorno (`double` aqui, já que a função produz um resultado de ponto flutuante), seguido pelo nome da função (`expon`), seguido por um conjunto de parênteses listando os parâmetros. Cada parâmetro é descrito incluindo o tipo do parâmetro e o nome do parâmetro. A seguir, a lista de parâmetros entre parênteses é um conjunto de chaves, no qual você aninha o corpo da função.
 
-Se você tem uma função que não possui nenhum valor de retorno útil, você usaria 'void` como o tipo de retorno.
+Se você tem uma função que não possui nenhum valor de retorno útil, você usaria `void` como o tipo de retorno.
 
 Programas possuem uma função especial chamada `main`, cujo tipo de retorno é um inteiro. Esta função é o "ponto de partida" para o programa: O computador essencialmente chama a função `main` do programa quando quer executar o programa. O valor de retorno inteiro é aparentemente sem sentido; sempre retornaremos 0 em vez de nos preocuparmos sobre como o valor de retorno pode ser usado.
 
@@ -315,6 +315,8 @@ Programas possuem uma função especial chamada `main`, cujo tipo de retorno é 
 Estamos agora em posição de apresentar um programa C completo, juntamente com seu equivalente em Python.
 
 ```c
+#include <stdio.h>
+
 int gcd(int a, int b) {
   if (b == 0) {
     return a;
@@ -340,9 +342,12 @@ def gcd(a, b):
 print("GCD: " + str(gcd(24, 40)))
 ```
 
-Em VisuAlg, uma "função" (`funcao`) sempre tem um valor de retorno; quando você não precisa de retorno, usa-se `procedimento`. Repare também que `%` (resto da divisão) em C corresponde à palavra `mod` em VisuAlg — assim como `!=` de C corresponde a `<>` em VisuAlg:
+Em VisuAlg, uma "função" (`funcao`) sempre tem um valor de retorno; quando você não precisa de retorno, usa-se `procedimento`. As sub-rotinas ficam **dentro** do algoritmo, depois da seção `var` e antes do `inicio` do programa principal. Repare também que `%` (resto da divisão) em C corresponde à palavra `mod` em VisuAlg — assim como `!=` de C corresponde a `<>` em VisuAlg:
 
 ```
+algoritmo "gcd"
+var
+
 funcao gcd(a, b: inteiro): inteiro
 inicio
     se (b = 0) entao
@@ -352,13 +357,12 @@ inicio
     fimse
 fimfuncao
 
-algoritmo "gcd"
 inicio
     escreval("GCD: ", gcd(24, 40))
 fimalgoritmo
 ```
 
-Como você pode ver, o programa C consiste em duas definições de função. Em contraste com o programa Python, onde a linha `print` existe fora de qualquer definição de função, o programa C requer que `printf()` esteja na função `main` do programa, já que é aqui que colocamos todo o código de nível superior é concluir quando o programa é executado.)
+Como você pode ver, o programa C consiste em duas definições de função. Em contraste com o programa Python, onde a linha `print` existe fora de qualquer definição de função, o programa C requer que `printf()` esteja na função `main` do programa, já que é ali que colocamos todo o código que deve ser executado quando o programa roda.
 
 !!! question "Exercício de mapeamento 1.3"
     Você já sabe escrever, em Python **ou** em VisuAlg, uma função/procedimento que calcula o fatorial de um número `n` (recursivamente ou com um laço, como preferir). Antes de perguntar a uma IA:
@@ -370,9 +374,61 @@ Como você pode ver, o programa C consiste em duas definições de função. Em 
     ??? tip "Dica, não gabarito"
         O cabeçalho da função vai ter o formato `int fatorial(int n) { ... }`. Pense em qual é o caso base (quando `n` é 0 ou 1) antes de pensar no caso recursivo.
 
-### 1.6. Lista de exercícios
+### 1.6. Lendo valores do teclado: `scanf`
 
-Estes exercícios usam só o que foi visto até aqui: declaração de variáveis, expressões, `printf` e funções — sem `if`, sem laços. Se você sentir falta de alguma dessas ferramentas em algum exercício, é sinal de que ele foi pensado para o próximo capítulo; tente resolver só com o que já foi apresentado.
+Para ler um valor digitado pelo usuário — o `input()` do Python ou o `leia()` do VisuAlg — C usa a função `scanf`, também da biblioteca `<stdio.h>`. Ela é o "espelho" do `printf`: recebe uma string de formato com os mesmos especificadores (`%d`, `%f`...) e, em seguida, **onde** guardar cada valor lido.
+
+```c
+#include <stdio.h>
+
+int main() {
+    int idade;
+    double altura;
+
+    printf("Idade: ");
+    scanf("%d", &idade);
+    printf("Altura: ");
+    scanf("%lf", &altura);
+
+    printf("Voce tem %d anos e %.2f m\n", idade, altura);
+    return 0;
+}
+```
+
+```python
+idade = int(input("Idade: "))
+altura = float(input("Altura: "))
+print(f"Voce tem {idade} anos e {altura:.2f} m")
+```
+
+```
+algoritmo "leitura"
+var
+    idade: inteiro
+    altura: real
+inicio
+    escreva("Idade: ")
+    leia(idade)
+    escreva("Altura: ")
+    leia(altura)
+    escreval("Voce tem ", idade, " anos e ", altura:0:2, " m")
+fimalgoritmo
+```
+
+Três detalhes que pegam quase todo mundo no começo:
+
+* **O `&` antes do nome da variável.** O `scanf` precisa saber *onde* guardar o valor lido, e `&idade` é o endereço de `idade`. O porquê completo fica para o Capítulo 6; por enquanto, lembre que toda leitura de número ou caractere leva `&`. Esquecer o `&` compila (o `-Wall` avisa), mas o programa quebra ao rodar.
+* **`%lf` para ler `double`.** No `printf`, `%f` serve tanto para `float` quanto para `double`; no `scanf`, não: use `%f` para `float` e `%lf` para `double`.
+* **Ler um `char` depois de outro valor.** O Enter digitado antes fica no buffer de entrada. Para ignorá-lo, coloque um espaço antes do especificador: `scanf(" %c", &op);`.
+
+| | C | VisuAlg | Python |
+|---|---|---|---|
+| ler um inteiro | `scanf("%d", &x);` | `leia(x)` | `x = int(input())` |
+| ler um real | `scanf("%lf", &x);` (com `double x`) | `leia(x)` | `x = float(input())` |
+
+### 1.7. Lista de exercícios
+
+Estes exercícios usam só o que foi visto até aqui: declaração de variáveis, expressões, `printf`, `scanf` e funções — sem `if`, sem laços. Se você sentir falta de alguma dessas ferramentas em algum exercício, é sinal de que ele foi pensado para o próximo capítulo; tente resolver só com o que já foi apresentado.
 
 #### Variáveis e expressões
 

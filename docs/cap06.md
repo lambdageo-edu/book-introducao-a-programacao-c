@@ -124,7 +124,7 @@ printf("%d\n", *(v + 3));   // 40 -- exatamente o mesmo elemento!
 
 Você não *precisa* escrever `*(v + i)` no dia a dia — a sintaxe de colchetes `v[i]` é muito mais legível e é a que vamos continuar usando. Mas entender que os colchetes são apenas um atalho para aritmética de ponteiros ajuda a perceber por que um vetor em C é tão simples: ele não guarda metadados sobre seu tamanho ou limites, apenas o endereço base inicial.
 
-!!! important "Vetores são como ponteiros imutáveis"
+!!! note "Vetores são como ponteiros imutáveis"
     Uma diferença crucial para fixar: você pode pensar no nome de um vetor como um **ponteiro imutável**. Isso significa que, uma vez criado, o endereço para o qual ele aponta é fixo e não pode ser alterado. Já um ponteiro comum é uma variável mutável, que pode ser reatribuída para apontar para qualquer lugar.
     
     ```c
@@ -226,7 +226,7 @@ p = (int*) malloc(sizeof(int));
 printf("%d\n", *p);
 ```
 
-`sizeof(int)` calcula quantos bytes um `int` ocupa nesta máquina (geralmente 4) — usamos isso em vez de escrever `4` na mão porque o tamanho exato pode variar entre sistemas, e `sizeof` sempre acerta. O `(int*)` na frente do `malloc` converte o resultado (que é genérico) para um ponteiro de `int`; não é obrigatório em C, mas é uma boa prática e deixa claro para quem lê o código qual é o tipo esperado.
+`sizeof(int)` calcula quantos bytes um `int` ocupa nesta máquina (geralmente 4) — usamos isso em vez de escrever `4` na mão porque o tamanho exato pode variar entre sistemas, e `sizeof` sempre acerta. O `(int*)` na frente do `malloc` converte o resultado (que é genérico, `void *`) para um ponteiro de `int`. Em C ele não é obrigatório — a conversão de `void *` acontece automaticamente — e muitos programadores preferem omiti-lo; aqui o mantemos para deixar explícito, para quem lê, qual é o tipo esperado.
 
 O uso mais comum de `malloc`, porém, é para vetores de tamanho decidido em tempo de execução — resolvendo exatamente o problema da Seção 6.5:
 
@@ -295,9 +295,16 @@ int *v = (int*) calloc(n, sizeof(int));   // n posições, todas comecando em 0
 int *v = (int*) malloc(10 * sizeof(int));
 // ... usa v[0..9] ...
 
-v = (int*) realloc(v, 20 * sizeof(int));   // agora v tem espaço para 20 posições
-// os primeiros 10 valores continuam lá; as novas 10 posições tem lixo de memória
+int *novo = (int*) realloc(v, 20 * sizeof(int));
+if (novo == NULL) {
+    // a realocação falhou: v continua válido (e ainda precisa de free)
+} else {
+    v = novo;   // agora v tem espaço para 20 posições
+}
+// os primeiros 10 valores continuam lá; as novas 10 posições têm lixo de memória
 ```
+
+Repare no ponteiro auxiliar `novo`: se escrevêssemos `v = realloc(v, ...)` e a realocação falhasse, `v` passaria a valer `NULL` e perderíamos o único endereço do bloco antigo — um vazamento de memória.
 
 É basicamente assim que uma `list` de Python consegue crescer com `append` sem você perceber: por baixo dos panos, o interpretador Python está fazendo algo parecido com `realloc` (com uma estratégia mais esperta para não precisar realocar a cada `append`), só que escondido de você.
 
@@ -380,7 +387,7 @@ while atual is not None:
 Note como o código Python e o código C, aqui, ficam **estruturalmente parecidos** — a diferença é que em Python `No(10)` já aloca o objeto automaticamente (sem `malloc`) e nunca precisa de `free`; a lógica de percorrer a lista com um ponteiro/referência "andando" (`atual = atual.proximo` / `atual = atual->proximo`) é essencialmente a mesma ideia nas duas linguagens.
 
 !!! tip "Isso volta a aparecer em Estrutura de Dados"
-    O que você acabou de ver é exatamente o que você vai reencontrar, com muito mais profundidade, na **Aula 5 (Lista Encadeada Dinâmica)** de [Estrutura de Dados](https://lambdageo.github.io/estrutura-dados/) — struct auto-referenciado, `malloc` nó a nó, e um ponteiro andando com `->proximo` até `NULL`. Se o exercício a seguir fizer sentido para você, a Aula 5 vai ser, em boa parte, revisão.
+    O que você acabou de ver é exatamente o que você vai reencontrar, com muito mais profundidade, no capítulo **3.2 (Listas Encadeadas como TAD em C)** do livro [Estruturas de Dados](https://lambdageo-edu.github.io/book-estrutura-de-dados/aulas/05_lista_encadeada/) — struct auto-referenciado, `malloc` nó a nó, e um ponteiro andando com `->prox` até `NULL`. Se o exercício a seguir fizer sentido para você, esse capítulo vai ser, em boa parte, revisão.
 
 !!! question "Exercício de mapeamento 6.3"
     Não existe VisuAlg ou Python "pronto" para traduzir desta vez — o exercício é o caminho inverso. Usando o código Python da lista encadeada acima como roteiro conceitual (não para traduzir literalmente, e sim como guia de "o que a lista precisa fazer"), escreva uma função em C:
@@ -421,14 +428,16 @@ Note como o código Python e o código C, aqui, ficam **estruturalmente parecido
 5. Considere:
 
     ```c
+    #include <stdio.h>
+
     int main() {
         int i = 5, *p;
         p = &i;
-        printf("%x %d %d %d %d\n", p, *p + 2, **&p, 3 * *p, **&p + 4);
+        printf("%p %d %d %d %d\n", (void *) p, *p + 2, **&p, 3 * *p, **&p + 4);
     }
     ```
 
-    Supondo que `i` ocupa o endereço `4094`, qual é a saída deste programa?
+    Supondo que `i` ocupa o endereço `4094` (em hexadecimal, `0xffe`), qual é a saída deste programa?
 6. Considere:
 
     ```c
@@ -478,7 +487,7 @@ Note como o código Python e o código C, aqui, ficam **estruturalmente parecido
 12. Escreva uma função que receba uma variável como parâmetro e imprima o seu endereço de memória.
 13. Escreva uma função `void troca(int *a, int *b)` que troca os valores de duas variáveis `int` através de ponteiros. Teste no `main` com duas variáveis, imprimindo os valores antes e depois de chamar `troca`.
 14. Faça um programa que leia um valor `n` do usuário, aloque dinamicamente (com `malloc`) um vetor de `n` inteiros, leia os `n` valores, calcule e imprima a soma e a média, e por fim libere a memória com `free`.
-15. Refaça o Exercício 1 da lista do Capítulo 4 (vetor lido do usuário, com N decidido em tempo de execução) usando `malloc` no lugar de um vetor de tamanho fixo — agora sem precisar de um "tamanho máximo" definido de antemão no código.
+15. Refaça o Exercício 6 da lista do Capítulo 4 (N valores informados pelo usuário) usando `malloc` no lugar de um vetor de tamanho fixo — agora sem precisar de um "tamanho máximo" definido de antemão no código.
 16. Implemente uma função `Produto *cria_produto(void)` que não recebe parâmetros e: (a) aloca dinamicamente memória para um `struct Produto` (definido na lista de exercícios do Capítulo 5); (b) verifica se a alocação foi bem-sucedida; (c) pede ao usuário os dados do produto; (d) retorna o ponteiro para a área alocada e preenchida.
 17. Faça um programa que pergunte ao usuário quantos produtos ele deseja cadastrar (`n`) e então: (a) aloque dinamicamente um vetor de `n` posições para `Produto`s; (b) verifique se a alocação foi bem-sucedida; (c) preencha o vetor com os dados de `n` produtos informados pelo usuário; (d) imprima os dados de todos os produtos; (e) libere a memória alocada ao final.
 18. Escreva uma função `int busca_produto_por_codigo(Produto vet[], int n, int codigo)` que percorre um vetor de `Produto`s e: se encontrar um produto com o código correspondente, retorna o **índice** desse produto; se não encontrar, retorna **-1**.

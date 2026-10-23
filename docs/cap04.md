@@ -36,7 +36,7 @@ Se você inicializa um vetor em C com menos valores do que o tamanho declarado, 
 int contadores[100] = {0};   // as 100 posições começam em 0
 ```
 
-Percorrer um vetor com um laço é basicamente igual nas três linguagens — só muda a sintaxe do `for`/`para`, que já vimos no capítulo anterior:
+Percorrer um vetor com um laço é basicamente igual nas três linguagens — só muda a sintaxe do `for`/`para`, que já vimos no Capítulo 2:
 
 ```c
 int soma = 0;
@@ -94,6 +94,8 @@ Repare no comentário na versão Python: para tarefas comuns como somar todos os
 Aqui vai um comportamento importante para observar, mesmo sem entender ainda o mecanismo por trás: em C, quando você passa um vetor como parâmetro para uma função e a função modifica os elementos do vetor, **essa modificação é vista de volta na função que chamou** — diferente do que acontece com um `int` ou um `double` passados normalmente.
 
 ```c
+#include <stdio.h>
+
 void dobra(int v[], int tamanho) {
     for (int i = 0; i < tamanho; i++) {
         v[i] = v[i] * 2;
@@ -145,7 +147,7 @@ Aqui está a maior diferença entre C e as duas linguagens que você já conhece
 char nome[20] = "Sergio";
 ```
 
-Essa linha cria um vetor de 20 posições e preenche as 7 primeiras com `'S'`, `'e'`, `'r'`, `'g'`, `'i'`, `'o'`, `'\0'` — o `\0` é adicionado automaticamente pelo compilador porque usamos uma string literal (`"Sergio"`) para inicializar. As outras 13 posições ficam com lixo de memória, sem valor definido, mas não importa: qualquer função que trabalha com essa string vai parar de ler assim que encontrar o `'\0'`, então o "lixo" depois dele nunca é usado.
+Essa linha cria um vetor de 20 posições e preenche as 7 primeiras com `'S'`, `'e'`, `'r'`, `'g'`, `'i'`, `'o'`, `'\0'` — o `\0` é adicionado automaticamente pelo compilador porque usamos uma string literal (`"Sergio"`) para inicializar. As outras 13 posições também recebem `'\0'`: como vimos na Seção 4.1, quando um vetor é inicializado com menos valores do que o seu tamanho, C completa o resto com zero. De todo modo, qualquer função que trabalha com essa string para de ler no primeiro `'\0'`, então o que vem depois dele nunca é usado.
 
 Repare que o tamanho do vetor (aqui, 20) **precisa ser maior** do que o texto que você pretende guardar — sobrando pelo menos 1 posição para o `\0`. Isso não tem paralelo direto em Python ou VisuAlg, onde uma string simplesmente cresce e encolhe conforme o conteúdo, sem você se preocupar em reservar espaço.
 
@@ -179,7 +181,7 @@ fimalgoritmo
 ```
 
 !!! warning "scanf(\"%s\", ...) é perigoso"
-    O `scanf("%s", nome)` não sabe que `nome` só tem 20 posições — se o usuário digitar um texto maior que isso, o `scanf` vai escrever além do fim do vetor, exatamente o tipo de comportamento sem checagem de limites que vimos na [Seção 2.5](cap02.md#25-arrays). Existem formas mais seguras de ler uma linha em C (como `fgets`), mas isso fica para mais adiante.
+    O `scanf("%s", nome)` não sabe que `nome` só tem 20 posições — se o usuário digitar um texto maior que isso, o `scanf` vai escrever além do fim do vetor, exatamente o tipo de comportamento sem checagem de limites que vimos na [Seção 2.5](cap02.md#25-arrays). Uma forma mais segura é limitar o tamanho no próprio formato — `scanf("%19s", nome)` lê no máximo 19 caracteres, deixando espaço para o `'\0'` — ou ler a linha inteira com `fgets(nome, sizeof nome, stdin)`, que respeita o tamanho do vetor e também aceita espaços (mas guarda o `'\n'` do Enter no final da string).
 
 ### 4.4. Funções de string (`<string.h>`)
 
@@ -194,7 +196,7 @@ Como uma string em C é só um vetor de `char`, os operadores comuns não fazem 
 char a[20] = "casa";
 char b[20] = "casa";
 
-if (a == b) {          // ERRADO: quase sempre dá falso, mesmo com o mesmo texto!
+if (a == b) {          // ERRADO: dá falso, mesmo com o mesmo texto — a e b são vetores diferentes!
     printf("iguais\n");
 }
 
@@ -218,7 +220,7 @@ char nome[30] = "Sergio";
 char sobrenome[20] = " Costa";
 
 strcat(nome, sobrenome);          // nome agora contém "Sergio Costa"
-printf("%s tem %lu letras\n", nome, strlen(nome));
+printf("%s tem %zu letras\n", nome, strlen(nome));   // %zu: formato do tipo size_t, que strlen devolve
 ```
 
 ```python
@@ -415,7 +417,7 @@ Repare como, de novo, o Python é o único dos três que consegue inicializar a 
 
 13. Faça um programa que leia uma palavra (sem espaços) e conte quantas vogais ela tem.
 14. Faça um programa que leia uma palavra (sem espaços) e diga se ela é um palíndromo — isto é, se lida de trás para frente é igual à original (ex.: `"arara"`, `"osso"`).
-15. Faça um programa que detecte se uma **frase** é um palíndromo, **ignorando espaços e o caractere hífen `-`** (exemplos: `"Socorram-me subi no onibus em Marrocos"`, `"Omitiram radar maritimo"`).
+15. Faça um programa que detecte se uma **frase** é um palíndromo, **ignorando espaços, o caractere hífen `-` e a diferença entre maiúsculas e minúsculas** (exemplos: `"Socorram-me subi no onibus em Marrocos"`, `"Omitiram radar maritimo"`).
 16. Faça um programa que leia uma palavra e a imprima invertida (ex.: entrada `"programa"`, saída `"amargorp"`).
 17. Baseado no exercício 13, mostre quantas vezes aparece **cada vogal** em uma frase, separando maiúsculas e minúsculas (exemplo, para `"Eu gosto de programar"`: `a=2; e=1; i=0; o=3; u=1` e `A=0; E=1; I=0; O=0; U=0`).
 18. Implemente uma cifra de César: desloque cada letra de uma frase em `n` posições no alfabeto. Crie dois programas — um que criptografa a frase com base numa chave `n`, e outro que descriptografa usando a mesma chave (exemplo, com `n=2`: `"Eu gosto de programar"` deve virar `"Gw iquvq fg rtqitcoct"`).
